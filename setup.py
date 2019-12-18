@@ -23,7 +23,7 @@ PATCH = ''
 SUFFIX = 'rc0'
 SHORT_VERSION = '{}.{}.{}{}'.format(MAJOR, MINOR, PATCH, SUFFIX)
 
-version_file = 'mmdet/version.py'
+version_file = 'detseg/version.py'
 
 
 def get_git_hash():
@@ -57,7 +57,7 @@ def get_hash():
         sha = get_git_hash()[:7]
     elif os.path.exists(version_file):
         try:
-            from mmdet.version import __version__
+            from detseg.version import __version__
             sha = __version__.split('+')[-1]
         except ImportError:
             raise ImportError('Unable to get git version')
@@ -129,16 +129,16 @@ def get_requirements(filename='requirements.txt'):
 if __name__ == '__main__':
     write_version_py()
     setup(
-        name='mmdet',
+        name='detseg',
         version=get_version(),
-        description='Open MMLab Detection Toolbox and Benchmark',
+        description='Detection and Segmentation Toolbox and Benchmark',
         long_description=readme(),
-        author='OpenMMLab',
-        author_email='chenkaidev@gmail.com',
-        keywords='computer vision, object detection',
-        url='https://github.com/open-mmlab/mmdetection',
+        author='Zuoyu Zhou',
+        author_email='zuoyu@hust.edu.cn',
+        keywords='computer vision, object detection, semantic segmentation',
+        url='https://github.com/etmwb/Semantic-Segmentation',
         packages=find_packages(exclude=('configs', 'tools', 'demo')),
-        package_data={'mmdet.ops': ['*/*.so']},
+        package_data={'detseg.ops': ['*/*.so']},
         classifiers=[
             'Development Status :: 4 - Beta',
             'License :: OSI Approved :: Apache Software License',
@@ -157,48 +157,48 @@ if __name__ == '__main__':
         ext_modules=[
             make_cython_ext(
                 name='soft_nms_cpu',
-                module='mmdet.ops.nms',
+                module='detseg.ops.nms',
                 sources=['src/soft_nms_cpu.pyx']),
             make_cuda_ext(
                 name='nms_cpu',
-                module='mmdet.ops.nms',
+                module='detseg.ops.nms',
                 sources=['src/nms_cpu.cpp']),
             make_cuda_ext(
                 name='nms_cuda',
-                module='mmdet.ops.nms',
+                module='detseg.ops.nms',
                 sources=['src/nms_cuda.cpp', 'src/nms_kernel.cu']),
             make_cuda_ext(
                 name='roi_align_cuda',
-                module='mmdet.ops.roi_align',
+                module='detseg.ops.roi_align',
                 sources=['src/roi_align_cuda.cpp', 'src/roi_align_kernel.cu']),
             make_cuda_ext(
                 name='roi_pool_cuda',
-                module='mmdet.ops.roi_pool',
+                module='detseg.ops.roi_pool',
                 sources=['src/roi_pool_cuda.cpp', 'src/roi_pool_kernel.cu']),
             make_cuda_ext(
                 name='deform_conv_cuda',
-                module='mmdet.ops.dcn',
+                module='detseg.ops.dcn',
                 sources=[
                     'src/deform_conv_cuda.cpp',
                     'src/deform_conv_cuda_kernel.cu'
                 ]),
             make_cuda_ext(
                 name='deform_pool_cuda',
-                module='mmdet.ops.dcn',
+                module='detseg.ops.dcn',
                 sources=[
                     'src/deform_pool_cuda.cpp',
                     'src/deform_pool_cuda_kernel.cu'
                 ]),
             make_cuda_ext(
                 name='sigmoid_focal_loss_cuda',
-                module='mmdet.ops.sigmoid_focal_loss',
+                module='detseg.ops.sigmoid_focal_loss',
                 sources=[
                     'src/sigmoid_focal_loss.cpp',
                     'src/sigmoid_focal_loss_cuda.cu'
                 ]),
             make_cuda_ext(
                 name='masked_conv2d_cuda',
-                module='mmdet.ops.masked_conv',
+                module='detseg.ops.masked_conv',
                 sources=[
                     'src/masked_conv2d_cuda.cpp', 'src/masked_conv2d_kernel.cu'
                 ]),
