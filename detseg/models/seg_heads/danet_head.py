@@ -10,37 +10,27 @@ class DANetHead(SegHead):
     def __init__(self,
                  in_channels,
                  out_channels,
-                 loss_cfg,
-                 norm_cfg=dict(type='BN', requires_grad=True)):
+                 loss_cfg):
         super(DANetHead, self).__init__(loss_cfg)
         inter_channels = in_channels // 4
-        self.conv5a = ConvModule(in_channels,
-                                 inter_channels,
-                                 kernel_size=3,
-                                 padding=1,
-                                 norm_cfg=norm_cfg,
-                                 inplace=False)
+        self.conv5a = nn.Sequential(
+            nn.Conv2d(in_channels, inter_channels, kernel_size=3, stride=1, padding=1, dilation=1, bias=False),
+            nn.BatchNorm2d(inter_channels),
+            nn.ReLU())
 
-        self.conv5c = ConvModule(in_channels,
-                                 inter_channels,
-                                 kernel_size=3,
-                                 padding=1,
-                                 norm_cfg=norm_cfg,
-                                 inplace=False)
+        self.conv5c = nn.Sequential(
+            nn.Conv2d(in_channels, inter_channels, kernel_size=3, stride=1, padding=1, dilation=1, bias=False),
+            nn.BatchNorm2d(inter_channels),
+            nn.ReLU())
 
         self.sa = PAM_Module(inter_channels)
         self.sc = CAM_Module(inter_channels)
-
-        self.conv51 = ConvModule(inter_channels,
-                                 inter_channels,
-                                 kernel_size=3,
-                                 padding=1,
-                                 norm_cfg=norm_cfg)
-        self.conv52 = ConvModule(inter_channels,
-                                 inter_channels,
-                                 kernel_size=3,
-                                 padding=1,
-                                 norm_cfg=norm_cfg)
+        self.conv51 = nn.Sequential(nn.Conv2d(inter_channels, inter_channels, 3, padding=1, bias=False),
+                                    nn.BatchNorm2d(inter_channels),
+                                    nn.ReLU())
+        self.conv52 = nn.Sequential(nn.Conv2d(inter_channels, inter_channels, 3, padding=1, bias=False),
+                                    nn.BatchNorm2d(inter_channels),
+                                    nn.ReLU())
 
         self.conv6 = nn.Sequential(nn.Dropout2d(0.1, False), nn.Conv2d(512, out_channels, 1))
         self.conv7 = nn.Sequential(nn.Dropout2d(0.1, False), nn.Conv2d(512, out_channels, 1))

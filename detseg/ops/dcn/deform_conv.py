@@ -447,6 +447,7 @@ class DepthDeformConvPack(ModulatedDeformConv):
             dilation=self.dilation,
             bias=True)
         self.init_offset()
+        # self.deformable_groups = 8
 
     def init_offset(self):
         self.conv_offset.weight.data.zero_()

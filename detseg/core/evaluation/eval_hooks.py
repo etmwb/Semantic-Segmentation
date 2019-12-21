@@ -238,11 +238,9 @@ class SegDistEvalAllHook(Hook):
         mIoU = np.mean(results['cls_intersection'] /\
                        (results['cls_plabel'] + results['cls_label'] - results['cls_intersection']))
 
-        # runner.log_buffer.output['eval'] = (
-        #     'pixAcc: {0:.3f} mAcc: {1:.3f} mIoU: {2:.3f}').format(pixAcc, mAcc, mIoU)
-        # runner.log_buffer.ready = True
-        print((
-             'pixAcc: {0:.3f} mAcc: {1:.3f} mIoU: {2:.3f}').format(pixAcc, mAcc, mIoU))
+        runner.log_buffer.output['eval'] = (
+            '\n pixAcc: {0:.3f} mAcc: {1:.3f} mIoU: {2:.3f}').format(pixAcc, mAcc, mIoU)
+        runner.log_buffer.ready = True
         if mIoU > self.best_mIoU:
             self.pixAcc, self.mAcc, self.best_mIoU = pixAcc, mAcc, mIoU
             state = dict(pixAcc=pixAcc, mAcc=mAcc, mIoU=mIoU, state_dict=runner.model.state_dict())

@@ -42,10 +42,8 @@ class BaseSegmentor(nn.Module):
 
     def forward_test(self, imgs, **kwargs):
         imgs = [imgs]
-        for var, name in [(imgs, 'imgs')]:
-            if not isinstance(var, list):
-                raise TypeError('{} must be a list, but got {}'.format(
-                    name, type(var)))
+        if 'rescale' in kwargs:
+            kwargs.pop('rescale')
 
         num_augs = len(imgs)
         # TODO: remove the restriction of imgs_per_gpu == 1 when prepared

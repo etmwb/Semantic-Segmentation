@@ -9,11 +9,15 @@ from ..registry import SEG_PIPELINES
 class Resize(object):
     def __init__(self,
                  scale,
-                 min_scale):
-        scale = np.random.uniform(min(scale), max(scale))
-        self.scale = max(scale, min_scale)
+                 shorter_side):
+        self.scale = np.random.uniform(min(scale), max(scale))
+        self.shorter_side = shorter_side
 
     def __call__(self, results):
+        image_h, image_w = results['label'].shape
+        short_side = min(image_h, image_w)
+        if short_side * self.scale < self.shorter_side:
+            self.scale = self.shorter_side * 1. / short_side
         results['img'] = cv2.resize(results['img'], None, fx=self.scale, fy=self.scale, interpolation=cv2.INTER_CUBIC)
         results['label'] = cv2.resize(results['label'], None, fx=self.scale, fy=self.scale, interpolation=cv2.INTER_NEAREST)
         if 'depth' in results:
@@ -114,6 +118,16 @@ class RandomHSV(object):
         img_v = np.clip(img_v + v_random, 0, 255)
         img_hsv = np.stack([img_h, img_s, img_v], axis=2)
         results['img'] = mpl.colors.hsv_to_rgb(img_hsv)
+        # if np.random.rand() > 0.1:
+        #     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+        #     hsv[:, :, 0] = hsv[:, :, 0] + np.random.rand() * 70 - 35
+        #     hsv[:, :, 1] = hsv[:, :, 1] + np.random.rand() * 0.3 - 0.15
+        #     hsv[:, :, 2] = hsv[:, :, 2] + np.random.rand() * 50 - 25
+        #     hsv[:, :, 0] = np.clip(hsv[:, :, 0], 0, 360.)
+        #     hsv[:, :, 1] = np.clip(hsv[:, :, 1], 0, 1.)
+        #     hsv[:, :, 2] = np.clip(hsv[:, :, 2], 0, 255.)
+        #     img = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
+        # results['img'] = img
 
         return results
 

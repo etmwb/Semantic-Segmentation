@@ -1,3 +1,5 @@
+import math
+
 import torch.nn as nn
 from mmcv.cnn import constant_init, kaiming_init
 from torch.nn.modules.batchnorm import _BatchNorm
@@ -35,9 +37,11 @@ class PointNet(nn.Module):
         # ignore args "pretrained" here
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
-                kaiming_init(m)
+                n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
+                m.weight.data.normal_(0, math.sqrt(2. / n))
             elif isinstance(m, (_BatchNorm, nn.GroupNorm)):
-                constant_init(m, 1)
+                m.weight.data.fill_(1)
+                m.bias.data.zero_()
 
     def forward(self, x):
         outs = []

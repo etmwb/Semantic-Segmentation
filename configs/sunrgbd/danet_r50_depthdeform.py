@@ -18,11 +18,11 @@ model = dict(
     head=dict(
         type='DANetHead',
         in_channels=2048,
-        out_channels=40,
+        out_channels=37,
         loss_cfg=dict(type='CrossEntropyLoss'))
 )
-dataset_type = 'Nyuv2Dataset'
-data_root = 'data/nyuv2/'
+dataset_type = 'SunrgbdDataset'
+data_root = 'data/sunrgbd/'
 mean_cfg = dict(img=[123.675, 116.28, 103.53], HHA=[132.431, 94.076, 118.477])
 std_cfg = dict(img=[1., 1., 1.], HHA=[1., 1., 1.])
 train_pipeline = [
@@ -46,7 +46,7 @@ val_pipeline = [
 data = dict(
     imgs_per_gpu=4,
     workers_per_gpu=2,
-    extra=dict(ignore_index=255,
+    extra=dict(ignore_index=-1,
                cls_weight=None),
     train=dict(type=dataset_type,
                path_file='train.txt',
@@ -57,16 +57,16 @@ data = dict(
         path_file='test.txt',
         data_root=data_root,
         pipeline=val_pipeline))
-evaluation=dict(ignore_index=255)
+evaluation=dict(ignore_index=-1)
 # optimizer
 # lr is set for a batch size of 4
-optimizer = dict(type='SGD', lr=0.00025, momentum=0.9, weight_decay=0.0001,
+optimizer = dict(type='SGD', lr=0.0001, momentum=0.9, weight_decay=0.0001,
                  paramgroup_options=[dict(params='backbone', lr_mult=1),
                                      dict(params='head', lr_mult=10),
                                      dict(params='backbone_depth', lr_mult=1)])
-optimizer_config = dict()
+optimizer_config = dict(grad_clip=dict(max_norm=35, norm_type=2))
 # learning policy
-lr_config = dict(policy='poly', power=0.9)
+lr_config = dict(policy='poly', power=0.9, by_epoch=False)
 checkpoint_config = dict(interval=1)
 # yapf:disable
 log_config = dict(
