@@ -36,7 +36,7 @@ class SingleStageSegmentor(BaseSegmentor):
     def extract_feat(self, img):
         if self.with_depth:
             return self.extract_feat_hybrid(img)
-        return self.backbone(img)
+        return self.backbone(img)[-1]
 
     def forward_train(self,
                       img,

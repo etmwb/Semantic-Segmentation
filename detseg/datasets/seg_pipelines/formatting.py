@@ -49,7 +49,7 @@ class DefaultFormatBundle(object):
 
 @SEG_PIPELINES.register_module
 class Collect(object):
-    def __init__(self, keys):
+    def __init__(self, keys=[]):
         self.keys = keys
 
     def __call__(self, results):
