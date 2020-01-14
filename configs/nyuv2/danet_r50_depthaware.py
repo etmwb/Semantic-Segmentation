@@ -10,7 +10,7 @@ model = dict(
             strides=(1, 2, 1, 1),
             dilations=(1, 1, 2, 4),
             out_indices=(0, 1, 2, 3),
-            dcn=dict(dcn_type='modulated'),
+            dcn=dict(dcn_type='depthaware'),
             stage_with_dcn=(False, True, True, True),
             style='pytorch',
             norm_eval=False),
@@ -34,13 +34,13 @@ train_pipeline = [
     # dict(type='RandomHSV', h_scale=[0.9, 1.1], s_scale=[0.9, 1.1], v_scale=[25, 25]),
     dict(type='Normalize', mean=mean_cfg, std=std_cfg),
     dict(type='DefaultFormatBundle'),
-    dict(type='Collect')
+    dict(type='Collect', keys=('depth', ))
 ]
 val_pipeline = [
     dict(type='LoadImageFromFile'),
     dict(type='Normalize', mean=mean_cfg, std=std_cfg),
     dict(type='DefaultFormatBundle'),
-    dict(type='Collect')
+    dict(type='Collect', keys=('depth', ))
 ]
 data = dict(
     imgs_per_gpu=4,
@@ -83,7 +83,7 @@ log_config = dict(
 total_epochs = 100
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = './work_dirs/nyuv2/danet_r50_deform'
+work_dir = './work_dirs/nyuv2/danet_r50_depthdeform'
 load_from = None
 resume_from = None
 workflow = [('train', 1)]

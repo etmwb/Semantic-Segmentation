@@ -15,6 +15,9 @@ class Resize(object):
 
     def __call__(self, results):
         image_h, image_w = results['label'].shape
+        results['ori_shape'] = (image_h, image_w)
+        if self.shorter_side == 'adaptive': 
+            self.shorter_side = int(image_h * 0.73)
         short_side = min(image_h, image_w)
         if short_side * self.scale < self.shorter_side:
             self.scale = self.shorter_side * 1. / short_side
@@ -38,6 +41,10 @@ class PadCrop(object):
 
     def __call__(self, results):
         img, label = results['img'], results['label']
+        ori_shape = results.pop('ori_shape')
+        if self.crop_size == 'adaptive': 
+            size = min(ori_shape[0], 520)
+            self.crop_size = (size, size)
 
         h, w, c = img.shape
         ch, cw = self.crop_size
@@ -118,16 +125,6 @@ class RandomHSV(object):
         img_v = np.clip(img_v + v_random, 0, 255)
         img_hsv = np.stack([img_h, img_s, img_v], axis=2)
         results['img'] = mpl.colors.hsv_to_rgb(img_hsv)
-        # if np.random.rand() > 0.1:
-        #     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-        #     hsv[:, :, 0] = hsv[:, :, 0] + np.random.rand() * 70 - 35
-        #     hsv[:, :, 1] = hsv[:, :, 1] + np.random.rand() * 0.3 - 0.15
-        #     hsv[:, :, 2] = hsv[:, :, 2] + np.random.rand() * 50 - 25
-        #     hsv[:, :, 0] = np.clip(hsv[:, :, 0], 0, 360.)
-        #     hsv[:, :, 1] = np.clip(hsv[:, :, 1], 0, 1.)
-        #     hsv[:, :, 2] = np.clip(hsv[:, :, 2], 0, 255.)
-        #     img = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
-        # results['img'] = img
 
         return results
 

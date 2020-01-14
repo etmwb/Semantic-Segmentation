@@ -2,7 +2,7 @@
 model_type='segmentation'
 model = dict(
     type='DANet',
-    pretrained='/home/zhouzuoyu/zzyai/Semantic-Segmentation/pretrained/ade20k/fcn_resnet50_ade.pth',
+    pretrained=None,
     backbone=dict(
             type='ResNet',
             depth=50,
@@ -17,18 +17,18 @@ model = dict(
     head=dict(
         type='DANetHead',
         in_channels=2048,
-        out_channels=40,
+        out_channels=37,
         loss_cfg=dict(type='CrossEntropyLoss'))
 )
-dataset_type = 'Nyuv2Dataset'
-data_root = 'data/nyuv2/'
+dataset_type = 'SunrgbdDataset'
+data_root = 'data/sunrgbd/'
 mean_cfg = dict(img=[123.675, 116.28, 103.53], HHA=[132.431, 94.076, 118.477])
 std_cfg = dict(img=[1., 1., 1.], HHA=[1., 1., 1.])
 train_pipeline = [
     dict(type='LoadImageFromFile'),
     dict(type='Resize', scale=(0.5, 2.0), shorter_side=350),
     dict(type='PadCrop',
-         pad_value=dict(img=[123.675, 116.28, 103.53], label=255, depth=0, HHA=[132.431, 94.076, 118.477]),
+         pad_value=dict(img=[123.675, 116.28, 103.53], label=0, depth=0, HHA=[132.431, 94.076, 118.477]),
          crop_size=[500, 500]),
     dict(type='RandomFlip'),
     # dict(type='RandomHSV', h_scale=[0.9, 1.1], s_scale=[0.9, 1.1], v_scale=[25, 25]),
@@ -65,7 +65,7 @@ data = dict(
 evaluation=dict(ignore_index=255)
 # optimizer
 # lr is set for a batch size of 4
-optimizer = dict(type='SGD', lr=0.00025, momentum=0.9, weight_decay=0.0001,
+optimizer = dict(type='SGD', lr=0.0001, momentum=0.9, weight_decay=0.0001,
                  paramgroup_options=[dict(params='backbone', lr_mult=1),
                                      dict(params='head', lr_mult=10)])
 optimizer_config = dict()
@@ -83,7 +83,7 @@ log_config = dict(
 total_epochs = 100
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = './work_dirs/nyuv2/danet_r50_deform'
-load_from = None
+work_dir = './work_dirs/sunrgbd/danet_r50_deform'
+load_from = '/home/zhouzuoyu/zzyai/Semantic-Segmentation/pretrained/nyuv2/deform.pth'
 resume_from = None
 workflow = [('train', 1)]

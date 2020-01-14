@@ -36,7 +36,7 @@ class DefaultFormatBundle(object):
         img = np.ascontiguousarray(results['img'].transpose(2, 0, 1))
         results['img'] = DC(to_tensor(img), stack=True)
         label = np.ascontiguousarray(results['label'])
-        results['label'] = DC(to_tensor(label).long(), stack=True, pad_dims=None)
+        results['label'] = DC(to_tensor(label).long(), stack=True, padding_value=255)
         if 'depth' in results:
             depth = np.ascontiguousarray(np.expand_dims(results['depth'], axis=0))
             results['depth'] = DC(to_tensor(depth), stack=True)

@@ -2,34 +2,37 @@ import torch
 import torch.nn as nn
 
 from ..registry import SEG_HEADS
-from ..utils import ConvModule
+from ..utils import build_norm_layer_woname
 from .seg_head import SegHead
+
 
 @SEG_HEADS.register_module
 class DANetHead(SegHead):
     def __init__(self,
                  in_channels,
                  out_channels,
-                 loss_cfg):
+                 loss_cfg,
+                 norm_cfg=dict(type='BN', requires_grad=True)):
         super(DANetHead, self).__init__(loss_cfg)
+
         inter_channels = in_channels // 4
         self.conv5a = nn.Sequential(
             nn.Conv2d(in_channels, inter_channels, kernel_size=3, stride=1, padding=1, dilation=1, bias=False),
-            nn.BatchNorm2d(inter_channels),
+            build_norm_layer_woname(norm_cfg, inter_channels),
             nn.ReLU())
 
         self.conv5c = nn.Sequential(
             nn.Conv2d(in_channels, inter_channels, kernel_size=3, stride=1, padding=1, dilation=1, bias=False),
-            nn.BatchNorm2d(inter_channels),
+            build_norm_layer_woname(norm_cfg, inter_channels),
             nn.ReLU())
 
         self.sa = PAM_Module(inter_channels)
         self.sc = CAM_Module(inter_channels)
         self.conv51 = nn.Sequential(nn.Conv2d(inter_channels, inter_channels, 3, padding=1, bias=False),
-                                    nn.BatchNorm2d(inter_channels),
+                                    build_norm_layer_woname(norm_cfg, inter_channels),
                                     nn.ReLU())
         self.conv52 = nn.Sequential(nn.Conv2d(inter_channels, inter_channels, 3, padding=1, bias=False),
-                                    nn.BatchNorm2d(inter_channels),
+                                    build_norm_layer_woname(norm_cfg, inter_channels),
                                     nn.ReLU())
 
         self.conv6 = nn.Sequential(nn.Dropout2d(0.1, False), nn.Conv2d(512, out_channels, 1))

@@ -17,7 +17,7 @@ class BaseSegmentor(nn.Module):
 
     @property
     def with_depth(self):
-        return hasattr(self, 'backbone_depth') and self.backbone_depth is not None
+        return self.backbone.dcn is not None and 'depth' in self.backbone.dcn['dcn_type']
 
     @abstractmethod
     def extract_feat(self, imgs):
@@ -35,33 +35,37 @@ class BaseSegmentor(nn.Module):
     def aug_test(self, imgs, **kwargs):
         pass
 
+    def pack(self, img, depth=None, HHA=None):
+        assert not (depth is not None and HHA is not None)
+        if depth is not None:
+            img = [img, depth]
+        if HHA is not None:
+            img = [img, HHA]
+        return img
+
     def init_weights(self, pretrained=None):
         if pretrained is not None:
             logger = logging.getLogger()
             logger.info('load model from: {}'.format(pretrained))
 
-    def forward_test(self, imgs, **kwargs):
-        imgs = [imgs]
-        if 'rescale' in kwargs:
-            kwargs.pop('rescale')
+    def forward_test(self, img, **kwargs):
 
-        num_augs = len(imgs)
         # TODO: remove the restriction of imgs_per_gpu == 1 when prepared
-        imgs_per_gpu = imgs[0].size(0)
+        imgs_per_gpu = img.size(0)
         assert imgs_per_gpu == 1
 
-        if num_augs == 1:
-            return self.simple_test(imgs[0], **kwargs)
+        if not kwargs.get('scales', None):
+            if 'scales' in kwargs: kwargs.pop('scales')
+            return self.simple_test(img, **kwargs)
         else:
-            return self.aug_test(imgs, **kwargs)
+            return self.aug_test(img, **kwargs)
 
     @auto_fp16(apply_to=('img', ))
     def forward(self, img, return_loss=True, **kwargs):
+        if 'rescale' in kwargs:
+            kwargs.pop('rescale')
+
         if return_loss:
             return self.forward_train(img, **kwargs)
         else:
             return self.forward_test(img, **kwargs)
-
-    def show_result(self, data):
-        # TODO: show segmentation result
-        raise NotImplementedError

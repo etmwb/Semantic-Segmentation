@@ -10,10 +10,11 @@ model = dict(
             strides=(1, 2, 1, 1),
             dilations=(1, 1, 2, 4),
             out_indices=(0, 1, 2, 3),
-            dcn=dict(dcn_type='modulated'),
-            stage_with_dcn=(False, True, True, True),
+            dcn=dict(dcn_type='depthdeform'),
+            stage_with_dcn=(False, False, False, True),
             style='pytorch',
             norm_eval=False),
+    backbone_depth=dict(type='PointNet'),
     head=dict(
         type='DANetHead',
         in_channels=2048,
@@ -34,13 +35,13 @@ train_pipeline = [
     # dict(type='RandomHSV', h_scale=[0.9, 1.1], s_scale=[0.9, 1.1], v_scale=[25, 25]),
     dict(type='Normalize', mean=mean_cfg, std=std_cfg),
     dict(type='DefaultFormatBundle'),
-    dict(type='Collect')
+    dict(type='Collect', keys=('HHA', ))
 ]
 val_pipeline = [
     dict(type='LoadImageFromFile'),
     dict(type='Normalize', mean=mean_cfg, std=std_cfg),
     dict(type='DefaultFormatBundle'),
-    dict(type='Collect')
+    dict(type='Collect', keys=('HHA', ))
 ]
 data = dict(
     imgs_per_gpu=4,
@@ -67,7 +68,8 @@ evaluation=dict(ignore_index=255)
 # lr is set for a batch size of 4
 optimizer = dict(type='SGD', lr=0.00025, momentum=0.9, weight_decay=0.0001,
                  paramgroup_options=[dict(params='backbone', lr_mult=1),
-                                     dict(params='head', lr_mult=10)])
+                                     dict(params='head', lr_mult=10),
+                                     dict(params='backbone_depth', lr_mult=10)])
 optimizer_config = dict()
 # learning policy
 lr_config = dict(policy='poly', power=0.9, by_epoch=False)
@@ -83,7 +85,7 @@ log_config = dict(
 total_epochs = 100
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = './work_dirs/nyuv2/danet_r50_deform'
+work_dir = './work_dirs/nyuv2/danet_r50_depthdeform'
 load_from = None
 resume_from = None
 workflow = [('train', 1)]

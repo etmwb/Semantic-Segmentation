@@ -7,7 +7,7 @@ from albumentations import Compose
 from imagecorruptions import corrupt
 from numpy import random
 
-from mmdet.core.evaluation.bbox_overlaps import bbox_overlaps
+from detseg.core.evaluation.bbox_overlaps import bbox_overlaps
 from ..registry import DET_PIPELINES
 
 

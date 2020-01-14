@@ -1,7 +1,6 @@
 import math
 
 import torch.nn as nn
-from mmcv.cnn import constant_init, kaiming_init
 from torch.nn.modules.batchnorm import _BatchNorm
 
 from ..registry import BACKBONES

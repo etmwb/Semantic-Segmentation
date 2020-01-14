@@ -1,3 +1,5 @@
+import torch.nn.functional as F
+
 from ..registry import SEGMENTORS
 from .single_stage import SingleStageSegmentor
 

@@ -1,5 +1,6 @@
 import logging
 
+import torch
 import torch.nn as nn
 import torch.utils.checkpoint as cp
 from mmcv.cnn import constant_init, kaiming_init
@@ -9,7 +10,7 @@ from torch.nn.modules.batchnorm import _BatchNorm
 from detseg.models.plugins import GeneralizedAttention
 from detseg.ops import ContextBlock, DeformConvPack, ModulatedDeformConvPack, DepthawareConv, DepthDeformConvPack
 from ..registry import BACKBONES
-from ..utils import build_conv_layer, build_norm_layer
+from ..utils import build_conv_layer, build_norm_layer, build_norm_layer_woname
 
 
 class BasicBlock(nn.Module):
@@ -305,6 +306,8 @@ def make_res_layer(block,
             gen_attention=gen_attention if
             (0 in gen_attention_blocks) else None))
     inplanes = planes * block.expansion
+    if dcn and dcn['dcn_type'] == 'depthaware':
+        dcn = None
     for i in range(1, blocks):
         layers.append(
             block(
@@ -391,7 +394,8 @@ class ResNet(nn.Module):
                  gen_attention=None,
                  stage_with_gen_attention=((), (), (), ()),
                  with_cp=False,
-                 zero_init_residual=True):
+                 zero_init_residual=True,
+                 deep_base=False):
         super(ResNet, self).__init__()
         if depth not in self.arch_settings:
             raise KeyError('invalid depth {} for resnet'.format(depth))
@@ -419,6 +423,7 @@ class ResNet(nn.Module):
         if gcb is not None:
             assert len(stage_with_gcb) == num_stages
         self.zero_init_residual = zero_init_residual
+        self.deep_base = deep_base
         self.block, stage_blocks = self.arch_settings[depth]
         self.stage_blocks = stage_blocks[:num_stages]
         self.inplanes = 64
@@ -462,15 +467,27 @@ class ResNet(nn.Module):
         return getattr(self, self.norm1_name)
 
     def _make_stem_layer(self, in_channels):
-        self.conv1 = build_conv_layer(
-            self.conv_cfg,
-            in_channels,
-            64,
-            kernel_size=7,
-            stride=2,
-            padding=3,
-            bias=False)
-        self.norm1_name, norm1 = build_norm_layer(self.norm_cfg, 64, postfix=1)
+        if self.deep_base:
+            self.inplanes = 128
+            self.conv1 = nn.Sequential(
+                nn.Conv2d(3, 64, kernel_size=3, stride=2, padding=1, bias=False),
+                build_norm_layer_woname(self.norm_cfg, 64),
+                nn.ReLU(inplace=True),
+                nn.Conv2d(64, 64, kernel_size=3, stride=1, padding=1, bias=False),
+                build_norm_layer_woname(self.norm_cfg, 64),
+                nn.ReLU(inplace=True),
+                nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1, bias=False),
+            )
+        else:
+            self.conv1 = build_conv_layer(
+                self.conv_cfg,
+                in_channels,
+                64,
+                kernel_size=7,
+                stride=2,
+                padding=3,
+                bias=False)
+        self.norm1_name, norm1 = build_norm_layer(self.norm_cfg, self.inplanes, postfix=1)
         self.add_module(self.norm1_name, norm1)
         self.relu = nn.ReLU(inplace=True)
         self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)

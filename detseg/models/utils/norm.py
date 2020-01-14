@@ -53,3 +53,6 @@ def build_norm_layer(cfg, num_features, postfix=''):
         param.requires_grad = requires_grad
 
     return name, layer
+
+def build_norm_layer_woname(cfg, num_features):
+    return build_norm_layer(cfg, num_features)[1]

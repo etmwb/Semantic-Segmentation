@@ -34,9 +34,9 @@ class SunrgbdDataset(BaseDataset):
                 postfix = postfix.strip()
                 subdir = self.path_file.split('.')[0]
                 image_paths.append(osp.join(self.data_root, 'image', subdir, postfix))
-                depth_paths.append(osp.join(self.data_root, 'depth', subdir, postfix))
-                label_paths.append(osp.join(self.data_root, 'label', subdir, postfix))
-                HHA_paths.append(osp.join(self.data_root, 'HHA', subdir, postfix))
+                depth_paths.append(osp.join(self.data_root, 'depth', subdir, postfix[:-3]+'png'))
+                label_paths.append(osp.join(self.data_root, 'label', subdir, postfix[:-3]+'png'))
+                HHA_paths.append(osp.join(self.data_root, 'HHA', subdir, postfix[:-3]+'png'))
         return dict(image_paths=image_paths, depth_paths=depth_paths,
                     label_paths=label_paths, HHA_paths=HHA_paths)
 

@@ -1,4 +1,4 @@
-from mmdet.utils import Registry
+from detseg.utils import Registry
 
 DATASETS = Registry('dataset')
 DET_PIPELINES = Registry('detection_pipeline')

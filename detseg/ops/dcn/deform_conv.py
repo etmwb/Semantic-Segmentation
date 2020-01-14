@@ -362,12 +362,14 @@ class ModulatedDeformConvPack(ModulatedDeformConv):
     def init_offset(self):
         self.conv_offset_mask.weight.data.zero_()
         self.conv_offset_mask.bias.data.zero_()
+        self.conv_offset_mask.lr_mult = 0.1
 
     def forward(self, x):
         out = self.conv_offset_mask(x)
         o1, o2, mask = torch.chunk(out, 3, dim=1)
         offset = torch.cat((o1, o2), dim=1)
         mask = torch.sigmoid(mask)
+        self.offset, self.mask = offset, mask
         return modulated_deform_conv(x, offset, mask, self.weight, self.bias,
                                      self.stride, self.padding, self.dilation,
                                      self.groups, self.deformable_groups)
@@ -387,26 +389,22 @@ class DepthawareConv(nn.Module):
                  bias=False):
         super(DepthawareConv, self).__init__()
 
-        assert not bias
-        assert in_channels % groups == 0, \
-            'in_channels {} cannot be divisible by groups {}'.format(
-                in_channels, groups)
-        assert out_channels % groups == 0, \
-            'out_channels {} cannot be divisible by groups {}'.format(
-                out_channels, groups)
-
         self.in_channels = in_channels
         self.out_channels = out_channels
         self.kernel_size = _pair(kernel_size)
-        self.stride = _pair(stride)
-        self.padding = _pair(padding)
-        self.dilation = _pair(dilation)
+        self.stride = stride
+        self.padding = padding
+        self.dilation = dilation
         self.groups = groups
 
         self.weight = nn.Parameter(
             torch.Tensor(out_channels, in_channels // self.groups,
                          *self.kernel_size))
 
+        if bias:
+            self.bias = nn.Parameter(torch.Tensor(out_channels))
+        else:
+            self.register_parameter('bias', None)
         self.reset_parameters()
 
     def reset_parameters(self):
@@ -417,7 +415,7 @@ class DepthawareConv(nn.Module):
         self.weight.data.uniform_(-stdv, stdv)
 
     def forward(self, x, depth):
-        return depthaware_conv(x, depth, self.weight, self.stride, self.padding,
+        return depthaware_conv(x, depth, self.weight, self.bias, self.stride, self.padding,
                            self.dilation, self.groups)
 
 
@@ -447,7 +445,6 @@ class DepthDeformConvPack(ModulatedDeformConv):
             dilation=self.dilation,
             bias=True)
         self.init_offset()
-        # self.deformable_groups = 8
 
     def init_offset(self):
         self.conv_offset.weight.data.zero_()
@@ -460,6 +457,7 @@ class DepthDeformConvPack(ModulatedDeformConv):
     def forward(self, x, depth):
         offset = self.conv_offset(torch.cat((x, depth), dim=1))
         mask = torch.sigmoid(self.conv_mask(depth, offset))
+        self.offset, self.mask = offset, mask
         return modulated_deform_conv(x, offset, mask, self.weight, self.bias,
                                      self.stride, self.padding, self.dilation,
                                      self.groups, self.deformable_groups)

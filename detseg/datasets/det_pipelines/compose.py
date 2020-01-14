@@ -1,6 +1,6 @@
 import collections
 
-from mmdet.utils import build_from_cfg
+from detseg.utils import build_from_cfg
 from ..registry import DET_PIPELINES
 
 
