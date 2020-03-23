@@ -1,9 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Mon Mar 23 15:30:33 2020
-
-@author: 周作禹
-"""
 import cv2
 import numpy as np
 from scipy import signal
