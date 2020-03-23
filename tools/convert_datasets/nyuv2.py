@@ -93,8 +93,8 @@ if __name__ == '__main__':
         for t in ['image', 'depth', 'label', 'HHA']: 
             os.makedirs(os.path.join(args.out_dir, t))
     
-    # saveColor(data, os.path.join(args.out_dir, 'image'))
-    # saveDepth(data, os.path.join(args.out_dir, 'depth'))
-    # saveLabel(data, os.path.join(args.out_dir, 'label'))
+    saveColor(data, os.path.join(args.out_dir, 'image'))
+    saveDepth(data, os.path.join(args.out_dir, 'depth'))
+    saveLabel(data, os.path.join(args.out_dir, 'label'))
     saveHHA(os.listdir(os.path.join(args.out_dir, 'image')), args.out_dir)
     
