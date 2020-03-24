@@ -10,4 +10,4 @@ python tools/convert_datasets/nyuv2.py PATH/nyu_depth_v2_labeled.mat
 c. Generate train/test split file.
 
 ### Install Detseg 
-Following the install.md in mmdetection.
+Following the [install.md](https://github.com/open-mmlab/mmdetection/blob/master/docs/INSTALL.md) in mmdetection.
