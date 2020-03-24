@@ -11,6 +11,10 @@ detseg is developed under the framework, mmdetection.
 
 Please refer to [INSTALL.md](docs/INSTALL.md) for installation and dataset preparation.
 
+## Get Started 
+
+Please refer to [GETTING_STARTED.md](docs/GETTING_STARTED.md) for the basic usage of Detseg.
+
 
 ## Pretrained Weights 
 
