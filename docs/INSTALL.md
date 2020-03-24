@@ -1,5 +1,6 @@
 ### Data preparation 
 a. Download NYUv2 dataset from [here](https://cs.nyu.edu/~silberman/datasets/nyu_depth_v2.html)
+
 b. Generate all images from the downloaded .mat file.
 
 ```shell 
