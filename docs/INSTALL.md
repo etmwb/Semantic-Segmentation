@@ -11,3 +11,5 @@ c. Generate train/test split file.
 
 ### Install Detseg 
 Following the [install.md](https://github.com/open-mmlab/mmdetection/blob/master/docs/INSTALL.md) in mmdetection.
+
+Revise /mmcv/parallel/collate.py Line41 to '>='.
