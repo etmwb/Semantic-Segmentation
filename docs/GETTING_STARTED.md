@@ -18,10 +18,19 @@ Examples:
 
 Assume that you have already downloaded the checkpoints to the directory `checkpoints/`.
 
-1. Test Faster R-CNN and visualize the results. Press any key for the next image.
+1. Test DDCN and visualize the results. 
 
 ```shell
 ./tools/dist_test.sh configs/nyuv2/danet_r50_depthdeform.py \
     danet_r50_nyuv2_depthdeform.pth \
+    2
+```
+
+2. Train DDCN.  
+
+Download [pretrained weights](https://hangzh.s3.amazonaws.com/encoding/models/fcn_resnet50_ade-662e979d.zip), find more details from [here](https://github.com/zhanghang1989/PyTorch-Encoding/blob/master/encoding/models/model_store.py).
+
+```shell
+./tools/dist_train.sh configs/nyuv2/danet_r50_depthdeform.py \
     2
 ```
