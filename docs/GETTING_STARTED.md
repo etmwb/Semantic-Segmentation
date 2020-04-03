@@ -28,7 +28,7 @@ Assume that you have already downloaded the checkpoints to the directory `checkp
 
 2. Train DDCN.  
 
-Download [pretrained weights](https://hangzh.s3.amazonaws.com/encoding/models/fcn_resnet50_ade-662e979d.zip) originated from [here](https://github.com/zhanghang1989/PyTorch-Encoding/blob/master/encoding/models/model_store.py).
+Download [pretrained weights](https://hangzh.s3.amazonaws.com/encoding/models/fcn_resnet50_ade-fc8c0b79.zip) originated from [here](https://github.com/zhanghang1989/PyTorch-Encoding/blob/master/encoding/models/model_store.py).
 
 ```shell
 ./tools/dist_train.sh configs/nyuv2/danet_r50_depthdeform.py \
