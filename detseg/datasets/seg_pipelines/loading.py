@@ -17,5 +17,7 @@ class LoadImageFromFile(object):
         results['depth'] = results['depth'] / 120.
 
         if self.label_minus:
-            results['label'] = results['label'] - 1
+            label = results['label'] - 1 
+            label[label == -1] = 255 
+            results['label'] = label
         return results
