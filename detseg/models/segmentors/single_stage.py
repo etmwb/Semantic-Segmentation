@@ -75,7 +75,7 @@ class SingleStageSegmentor(BaseSegmentor):
 
     def simple_test(self,
                     img,
-                    gt_label,
+                    gt_label=None,
                     depth=None,
                     HHA=None,
                     ignore_index=-100,
