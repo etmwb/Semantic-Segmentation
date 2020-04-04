@@ -130,7 +130,7 @@ def visualize_effective_dilation(dataloader, model, optimizer, cfg):
         model.eval()
         # data['img'], data['HHA'] = data['img']._data[0].cuda(), data['HHA']._data[0].cuda()
         data['img'] = data['img']._data[0].cuda()
-        pred = model.module.before_evaluate(data['img'])
+        pred = model.module.simple_test(data['img'], logit_only=True)
         pred = torch.max(pred, dim=1)[1]
         pred = pred[0].cpu().numpy()
 
