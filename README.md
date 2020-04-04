@@ -11,7 +11,7 @@ Supported methods and backbones are shown in the below table.
 
 ## Introduction
 
-detseg is developed under the framework, mmdetection. 
+detseg is developed under the framework, [mmdetection](https://github.com/open-mmlab/mmdetection/blob/master/README.md). 
 
 
 ## Installation
