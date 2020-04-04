@@ -1,6 +1,13 @@
 
 # Detseg
 
+## Benchmark and model zoo
+
+Supported methods and backbones are shown in the below table.
+
+|                    | ResNet   | ResNeXt  | SENet    | VGG      | HRNet |
+|--------------------|:--------:|:--------:|:--------:|:--------:|:-----:|
+| DDCN                | ✓        | ✗        | ☐        | ✗        | ✗     |
 
 ## Introduction
 
