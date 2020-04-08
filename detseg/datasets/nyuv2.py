@@ -29,7 +29,7 @@ class Nyuv2Dataset(BaseDataset):
         self.flag = np.zeros(len(self), dtype=np.uint8)
 
     def load_path(self):
-        image_paths, depth_paths, label_paths, HHA_paths = [], [], [], []
+        image_paths, depth_paths, label_paths, HHA_paths, PC_paths = [], [], [], [], []
         with open(osp.join(self.data_root, self.path_file), 'r') as f:
             for postfix in f.readlines():
                 postfix = postfix.strip()
@@ -37,13 +37,15 @@ class Nyuv2Dataset(BaseDataset):
                 depth_paths.append(osp.join(self.data_root, 'depth', postfix))
                 label_paths.append(osp.join(self.data_root, 'label', postfix))
                 HHA_paths.append(osp.join(self.data_root, 'HHA', postfix))
+                PC_paths.append(osp.join(self.data_root, 'PC', postfix.split('.')[0]+'.h5'))
         return dict(image_paths=image_paths, depth_paths=depth_paths,
-                    label_paths=label_paths, HHA_paths=HHA_paths)
+                    label_paths=label_paths, HHA_paths=HHA_paths, PC_paths=PC_paths)
 
     def __getitem__(self, index):
         result = dict(
             img=self.paths['image_paths'][index], depth=self.paths['depth_paths'][index],
-            label=self.paths['label_paths'][index], HHA=self.paths['HHA_paths'][index])
+            label=self.paths['label_paths'][index], HHA=self.paths['HHA_paths'][index], 
+            PC=self.paths['PC_paths'][index])
         return self.pipeline(result)
 
     def __len__(self):
