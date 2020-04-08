@@ -43,6 +43,9 @@ class DefaultFormatBundle(object):
         if 'HHA' in results:
             HHA = np.ascontiguousarray(results['HHA'].transpose(2, 0, 1))
             results['HHA'] = DC(to_tensor(HHA), stack=True)
+        if 'PC' in results:
+            PC = np.ascontiguousarray(results['PC'].transpose(2, 0, 1))
+            results['PC'] = DC(to_tensor(PC), stack=True)
 
         return results
 
