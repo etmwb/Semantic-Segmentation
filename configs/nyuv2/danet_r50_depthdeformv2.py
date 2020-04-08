@@ -13,7 +13,7 @@ model = dict(
             stage_with_dcn=(False, True, True, True),
             style='pytorch',
             norm_eval=False),
-    backbone_depth=dict(type='PointNet'),
+    backbone_depth=dict(type='PointNet2'),
     head=dict(
         type='DANetHead',
         in_channels=2048,
