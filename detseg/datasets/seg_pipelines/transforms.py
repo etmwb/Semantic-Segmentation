@@ -28,6 +28,8 @@ class Resize(object):
             results['depth'] = cv2.resize(results['depth'], None, fx=self.scale, fy=self.scale, interpolation=cv2.INTER_CUBIC)
         if 'HHA' in results:
             results['HHA'] = cv2.resize(results['HHA'], None, fx=self.scale, fy=self.scale, interpolation=cv2.INTER_CUBIC)
+        if 'PC' in results: 
+            results['PC'] = cv2.resize(results['PC'], None, fx=self.scale, fy=self.scale, interpolation=cv2.INTER_CUBIC)
 
         return results
 
@@ -79,6 +81,13 @@ class PadCrop(object):
             expand_HHA[top:top + h, left:left + w] = results['HHA']
             expand_HHA = expand_HHA[crop_top:crop_top + ch, crop_left:crop_left + cw]
             results['HHA'] = expand_HHA
+        
+        if 'PC' in results:
+            expand_PC = np.full((expand_h, expand_w, c),
+                               self.pad_value['PC']).astype(results['PC'].dtype)
+            expand_PC[top:top + h, left:left + w] = results['PC']
+            expand_PC = expand_PC[crop_top:crop_top + ch, crop_left:crop_left + cw]
+            results['PC'] = expand_PC
 
         return results
 
@@ -97,6 +106,8 @@ class RandomFlip(object):
                 results['depth'] = mmcv.imflip(results['depth'])
             if 'HHA' in results:
                 results['HHA'] = mmcv.imflip(results['HHA'])
+            if 'PC' in results:
+                results['PC'] = mmcv.imflip(results['PC'])
 
         return results
 
