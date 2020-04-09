@@ -46,7 +46,8 @@ class SingleStageSegmentor(BaseSegmentor):
                       img,
                       gt_label=None,
                       depth=None,
-                      HHA=None):
+                      HHA=None,
+                      PC=None):
         return self.simple_test(img, gt_label, depth, HHA, logit_only=True)
 
     def forward_train(self,
@@ -54,11 +55,12 @@ class SingleStageSegmentor(BaseSegmentor):
                       gt_label,
                       depth=None,
                       HHA=None,
+                      PC=None,
                       cls_weight=None,
                       ignore_index=-100):
         img_h, img_w = img.size()[2:]
 
-        img = self.pack(img, depth, HHA)
+        img = self.pack(img, depth, HHA, PC)
 
         feat_conv5 = self.extract_feat(img)
         logits = self.head(feat_conv5)
@@ -78,11 +80,12 @@ class SingleStageSegmentor(BaseSegmentor):
                     gt_label=None,
                     depth=None,
                     HHA=None,
+                    PC=None,
                     ignore_index=-100,
                     logit_only=False):
         img_h, img_w = img.size()[2:]
 
-        img = self.pack(img, depth, HHA)
+        img = self.pack(img, depth, HHA, PC)
         feat_conv5 = self.extract_feat(img)
         logit = self.head(feat_conv5)[0]
         logit = interpolate(logit, size=(img_h, img_w), mode='bilinear', align_corners=True)
@@ -97,6 +100,7 @@ class SingleStageSegmentor(BaseSegmentor):
                  gt_label,
                  depth=None,
                  HHA=None,
+                 PC=None,
                  scales=None,
                  ignore_index=-100
                  ):
@@ -119,24 +123,24 @@ class SingleStageSegmentor(BaseSegmentor):
                 width = long_size
                 height = int(1.0 * img_h * long_size / img_w + 0.5)
                 short_size = height
-            resized_img, resized_depth, resized_HHA = [interpolate(tensor, size=(height, width), mode='bilinear', align_corners=True)
-                                                       if tensor is not None else None for tensor in [img, depth, HHA]]
+            resized_img, resized_depth, resized_HHA, resized_PC = [interpolate(tensor, size=(height, width), mode='bilinear', align_corners=True)
+                                                                   if tensor is not None else None for tensor in [img, depth, HHA, PC]]
 
             if long_size <= crop_size:
-                pad_img, pad_depth, pad_HHA = [pad_image(tensor, crop_size) if tensor is not None else None
-                                               for tensor in [resized_img, resized_depth, resized_HHA]]
-                outputs = self.simple_test(pad_img, None, pad_depth, pad_HHA, logit_only=True)
-                flip_img, flip_depth, flip_HHA = [tensor.flip(-1) if tensor is not None else None
-                                                  for tensor in [pad_img, pad_depth, pad_HHA]]
-                outputs += self.simple_test(flip_img, None, flip_depth, flip_HHA, logit_only=True).flip(-1)
+                pad_img, pad_depth, pad_HHA, pad_PC = [pad_image(tensor, crop_size) if tensor is not None else None
+                                                       for tensor in [resized_img, resized_depth, resized_HHA, resized_PC]]
+                outputs = self.simple_test(pad_img, None, pad_depth, pad_HHA, pad_PC, logit_only=True)
+                flip_img, flip_depth, flip_HHA, flip_PC = [tensor.flip(-1) if tensor is not None else None
+                                                           for tensor in [pad_img, pad_depth, pad_HHA, pad_PC]]
+                outputs += self.simple_test(flip_img, None, flip_depth, flip_HHA, flip_PC, logit_only=True).flip(-1)
                 outputs = outputs[:, :, :height, :width].exp()
             else:
                 if short_size < crop_size:
                     # pad if needed
-                    pad_img, pad_depth, pad_HHA = [pad_image(tensor, crop_size) if tensor is not None else None
-                                                   for tensor in [resized_img, resized_depth, resized_HHA]]
+                    pad_img, pad_depth, pad_HHA, pad_PC = [pad_image(tensor, crop_size) if tensor is not None else None
+                                                           for tensor in [resized_img, resized_depth, resized_HHA, resized_PC]]
                 else:
-                    pad_img, pad_depth, pad_HHA = resized_img, resized_depth, resized_HHA
+                    pad_img, pad_depth, pad_HHA, pad_PC = resized_img, resized_depth, resized_HHA, resized_PC
 
                 pad_h, pad_w = pad_img.size()[2:]
                 # grid forward and normalize
@@ -154,15 +158,15 @@ class SingleStageSegmentor(BaseSegmentor):
                         w0 = idw * stride
                         h1 = min(h0 + crop_size, pad_h)
                         w1 = min(w0 + crop_size, pad_w)
-                        crop_img, crop_depth, crop_HHA = [tensor[:, :, h0:h1, w0:w1] if tensor is not None else None
-                                    for tensor in [pad_img, pad_depth, pad_HHA]]
+                        crop_img, crop_depth, crop_HHA, crop_PC = [tensor[:, :, h0:h1, w0:w1] if tensor is not None else None
+                                                                   for tensor in [pad_img, pad_depth, pad_HHA, pad_PC]]
                         # pad if needed
-                        pad_crop_img, pad_crop_depth, pad_crop_HHA = [pad_image(tensor, crop_size) if tensor is not None else None
-                                                                      for tensor in [crop_img, crop_depth, crop_HHA]]
-                        output = self.simple_test(pad_crop_img, None, pad_crop_depth, pad_crop_HHA, logit_only=True)
-                        flip_img, flip_depth, flip_HHA = [tensor.flip(-1) if tensor is not None else None
-                                                          for tensor in [pad_crop_img, pad_crop_depth, pad_crop_HHA]]
-                        output += self.simple_test(flip_img, None, flip_depth, flip_HHA, logit_only=True).flip(-1)
+                        pad_crop_img, pad_crop_depth, pad_crop_HHA, pad_crop_PC = [pad_image(tensor, crop_size) if tensor is not None else None
+                                                                                   for tensor in [crop_img, crop_depth, crop_HHA, crop_PC]]
+                        output = self.simple_test(pad_crop_img, None, pad_crop_depth, pad_crop_HHA, pad_crop_PC logit_only=True)
+                        flip_img, flip_depth, flip_HHA, flip_PC = [tensor.flip(-1) if tensor is not None else None
+                                                                   for tensor in [pad_crop_img, pad_crop_depth, pad_crop_HHA, pad_crop_PC]]
+                        output += self.simple_test(flip_img, None, flip_depth, flip_HHA, flip_PC, logit_only=True).flip(-1)
                         outputs[:, :, h0: h1, w0: w1] += output[:, :, 0: h1-h0, 0: w1-w0].exp()
                         count_norm[:, :, h0: h1, w0: w1] += 1
                 assert((count_norm==0).sum()==0)
