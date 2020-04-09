@@ -9,16 +9,22 @@ model = dict(
             strides=(1, 2, 1, 1),
             dilations=(1, 1, 2, 4),
             out_indices=(0, 1, 2, 3),
+            norm_cfg=dict(type='SyncBN', requires_grad=True),
             dcn=dict(dcn_type='depthdeform'),
             stage_with_dcn=(False, True, True, True),
             style='pytorch',
             norm_eval=False),
-    backbone_depth=dict(type='PointNet2'),
+    backbone_depth=dict(
+        type='PointNet2', 
+        in_channels=3, 
+        use_xyz=False, 
+        norm_cfg=dict(type='SyncBN', requires_grad=True)),
     head=dict(
         type='DANetHead',
         in_channels=2048,
         out_channels=40,
-        loss_cfg=dict(type='CrossEntropyLoss'))
+        loss_cfg=dict(type='CrossEntropyLoss'),
+        norm_cfg=dict(type='SyncBN', requires_grad=True))
 )
 dataset_type = 'Nyuv2Dataset'
 data_root = 'data/nyuv2/'
@@ -84,7 +90,7 @@ log_config = dict(
 total_epochs = 100
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = './work_dirs/nyuv2/danet_r50_depthdeform'
+work_dir = './work_dirs/nyuv2/danet_r50_depthdeformv2'
 load_from = None
 resume_from = None
 workflow = [('train', 1)]
