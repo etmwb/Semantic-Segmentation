@@ -35,12 +35,15 @@ class BaseSegmentor(nn.Module):
     def aug_test(self, imgs, **kwargs):
         pass
 
-    def pack(self, img, depth=None, HHA=None):
+    def pack(self, img, depth=None, HHA=None, PC=None):
         assert not (depth is not None and HHA is not None)
         if depth is not None:
             img = [img, depth]
         if HHA is not None:
-            img = [img, HHA]
+            if PC is not None: 
+                img = [img, (HHA, PC)]
+            else:
+                img = [img, HHA]
         return img
 
     def init_weights(self, pretrained=None):
