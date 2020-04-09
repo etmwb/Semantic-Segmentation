@@ -11,9 +11,11 @@ class PointNet2(nn.Module):
                  in_channels=6,
                  use_xyz=True, 
                  use_decoder=False,
+                 use_HHA=True,
                  norm_cfg=dict(type='BN', requires_grad=True)):
         super(PointNet2, self).__init__()
         self.use_decoder = use_decoder
+        self.use_HHA = use_HHA
         
         c_in = in_channels
         self.layer1 = SA(
@@ -22,6 +24,7 @@ class PointNet2(nn.Module):
             nsamples=[16, 32],
             mlps=[[c_in, 16, 16, 32], [c_in, 32, 32, 64]],
             use_xyz=use_xyz,
+            use_HHA=2 if use_HHA else -1,
             norm_cfg=norm_cfg)
         c_out_0 = 32 + 64
 
@@ -32,6 +35,7 @@ class PointNet2(nn.Module):
             nsamples=[16, 32],
             mlps=[[c_in, 64, 64, 128], [c_in, 64, 96, 128]],
             use_xyz=use_xyz,
+            use_HHA=1 if use_HHA else -1,
             norm_cfg=norm_cfg)
         c_out_1 = 128 + 128
 
@@ -42,6 +46,7 @@ class PointNet2(nn.Module):
             nsamples=[16, 32],
             mlps=[[c_in, 128, 196, 256], [c_in, 128, 196, 256]],
             use_xyz=use_xyz,
+            use_HHA=0 if use_HHA else -1,
             norm_cfg=norm_cfg)
         c_out_2 = 256 + 256
 
@@ -52,6 +57,7 @@ class PointNet2(nn.Module):
             nsamples=[16, 32],
             mlps=[[c_in, 256, 256, 512], [c_in, 256, 384, 512]],
             use_xyz=use_xyz,
+            use_HHA=0 if use_HHA else -1,
             norm_cfg=norm_cfg)
         c_out_3 = 512 + 512
 
@@ -75,7 +81,10 @@ class PointNet2(nn.Module):
         return xyz, features
     
     def forward(self, pointcloud): 
-        xyz, features = self._break_up_pc(pointcloud)
+        if self.use_HHA: 
+            xyz, features = pointcloud 
+        else:
+            xyz, features = self._break_up_pc(pointcloud)
 
         l_xyz, l_features = [xyz], [features]
         for i in range(4):
@@ -112,9 +121,11 @@ class SA(nn.Module):
                nsample, 
                mlps,
                use_xyz=True, 
+               use_HHA=0,
                norm_cfg=dict(type='BN', requires_grad=True)):
         super(SA, self).__init__()
         assert len(radii) == len(nsample) == len(mlps)
+        self.use_HHA = use_HHA
         self.groupers, self.mlps = [], []
         
         for i in range(len(radii)): 
@@ -134,12 +145,24 @@ class SA(nn.Module):
     def forward(self, xyz, features): 
         new_features_list = []
         
-        xyz_flipped = xyz.transpose(1, 2).contiguous()
-        new_xyz = (gather_operation(xyz_flipped, furthest_point_sample(xyz, self.npoint))
-            .transpose(1, 2)
-            .contiguous()
-            if self.npoint is not None
-            else None)
+        if self.use_HHA != -1: 
+            for i in range(self.use_HHA): 
+                if i == 0: 
+                    new_xyz = F.max_pool2d(xyz, kernel_size=1, stride=2)
+                else: 
+                    new_xyz = F.max_pool2d(new_xyz, kernel_size=1, stride=2)
+            B, C, _, _ = features.size()
+            _, _, H, W = new_xyz.size()
+            xyz = xyz.view(B, 3, -1).transpose(1, 2).contiguous()
+            new_xyz = new_xyz.view(B, 3, -1).transpose(1, 2).contiguous()
+            features = features.view(B, C, -1)
+        else:
+            xyz_flipped = xyz.transpose(1, 2).contiguous()
+            new_xyz = (gather_operation(xyz_flipped, furthest_point_sample(xyz, self.npoint))
+                .transpose(1, 2)
+                .contiguous()
+                if self.npoint is not None
+                else None)
         
         for i in range(len(self.groupers)): 
             grouper = getattr(self, self.groupers[i])
@@ -153,7 +176,7 @@ class SA(nn.Module):
 
             new_features_list.append(new_features)
 
-        return new_xyz, torch.cat(new_features_list, dim=1)
+        return new_xyz.transpose(1, 2).view(B, 3, H, W).contiguous(), torch.cat(new_features_list, dim=1).view(B, -1, H, W)
 
 class FP(nn.Module):
     def __init__(self, mlp_param, norm_cfg):
