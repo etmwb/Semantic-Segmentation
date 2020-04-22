@@ -14,7 +14,7 @@ class LoadImageFromFile(object):
         for key, value in results.items():
             if key == 'PC': 
                 h5f = h5py.File(value, 'r')
-                results[key] = h5f['pcs'][:]
+                results[key] = h5f['pcs'][:].astype(np.float32)
                 continue
             results[key] = np.array(Image.open(value))
 
