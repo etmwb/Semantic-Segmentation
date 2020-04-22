@@ -1,5 +1,9 @@
+import math
+
 import torch
 import torch.nn as nn 
+import torch.nn.functional as F
+from torch.nn.modules.batchnorm import _BatchNorm
 
 from ..registry import BACKBONES
 from ..utils import ConvModule
@@ -74,6 +78,16 @@ class PointNet2(nn.Module):
                 nn.Dropout(0.5),
                 nn.Conv1d(128, 13, kernel_size=1),
             )
+    
+    def init_weights(self, pretrained=None):
+        # ignore args "pretrained" here
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
+                m.weight.data.normal_(0, math.sqrt(2. / n))
+            elif isinstance(m, (_BatchNorm, nn.GroupNorm)):
+                m.weight.data.fill_(1)
+                m.bias.data.zero_()
             
     def _break_up_pc(self, pc):
         xyz = pc[..., 0:3].contiguous()
@@ -115,22 +129,21 @@ def build_shared_mlp(mlp_param, norm_cfg):
     return nn.Sequential(*layers)        
 
 class SA(nn.Module):
-    def __init(self,
+    def __init__(self,
                npoint, 
                radii,
-               nsample, 
+               nsamples, 
                mlps,
                use_xyz=True, 
                use_HHA=0,
                norm_cfg=dict(type='BN', requires_grad=True)):
         super(SA, self).__init__()
-        assert len(radii) == len(nsample) == len(mlps)
+        assert len(radii) == len(nsamples) == len(mlps)
         self.use_HHA = use_HHA
         self.groupers, self.mlps = [], []
         
         for i in range(len(radii)): 
-            grouper = QueryAndGroup(radii[i], nsample[i], use_xyz=use_xyz) if npoint is not None
-                    else GroupAll(use_xyz)
+            grouper = QueryAndGroup(radii[i], nsamples[i], use_xyz=use_xyz) if npoint is not None else GroupAll(use_xyz)
             grouper_name = 'grouper{}'.format(i+1)
             self.add_module(grouper_name, grouper)
             self.groupers.append(grouper_name)
