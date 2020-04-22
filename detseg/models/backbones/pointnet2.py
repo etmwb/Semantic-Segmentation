@@ -161,7 +161,7 @@ class SA(nn.Module):
         if self.use_HHA != -1: 
             new_xyz = xyz
             for i in range(self.use_HHA): 
-                new_xyz = F.max_pool2d(xyz, kernel_size=1, stride=2)
+                new_xyz = F.max_pool2d(new_xyz, kernel_size=1, stride=2)
             B, C, _, _ = features.size()
             _, _, H, W = new_xyz.size()
             xyz = xyz.view(B, 3, -1).transpose(1, 2).contiguous()
